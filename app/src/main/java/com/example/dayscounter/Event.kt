@@ -12,7 +12,7 @@ data class Event(
     val description: String = "",
     val epochDay: Long,
     val createdAt: Long = System.currentTimeMillis(),
-    val colorHex: Long = 0xFFF16529, // Default Orange
+    val colorHex: Long = 0xFFF16529,
     val showYears: Boolean = false,
     val showMonths: Boolean = false,
     val showWeeks: Boolean = false,
@@ -36,7 +36,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
 }
 
-// Helper object to store the calculated date units
 data class TimeDiff(val years: Long, val months: Long, val weeks: Long, val days: Long)
 
 fun calculateTimeDiff(startDate: LocalDate, endDate: LocalDate, event: Event): TimeDiff {

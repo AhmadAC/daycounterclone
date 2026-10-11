@@ -16,19 +16,17 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun EventCard(event: Event, onClick: () -> Unit) {
+fun EventCard(event: Event, isDarkTheme: Boolean = true, onClick: () -> Unit) {
     val today = LocalDate.now()
     val eventDate = LocalDate.ofEpochDay(event.epochDay)
     val isPassed = !eventDate.isAfter(today)
 
-    // Calculate time using the exact combination of checkboxes selected
     val diff = calculateTimeDiff(
         startDate = if (isPassed) eventDate else today,
         endDate = if (isPassed) today else eventDate,
         event = event
     )
 
-    // Build the dynamic string (e.g. "41" for Days, or "1/10" for Months/Days)
     val values = mutableListOf<String>()
     val labels = mutableListOf<String>()
 
@@ -45,11 +43,15 @@ fun EventCard(event: Event, onClick: () -> Unit) {
     val mainText = values.joinToString("/")
     val subText = labels.joinToString("/")
 
+    val cardBg = if (isDarkTheme) Color(0xFF282828) else Color.White
+    val titleColor = if (isDarkTheme) Color.White else Color.Black
+    val metaColor = if (isDarkTheme) Color.Gray else Color(0xFF757575)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF282828)),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         shape = RoundedCornerShape(4.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
@@ -67,11 +69,11 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(event.title, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Normal)
+                    Text(event.title, color = titleColor, fontSize = 20.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(14.dp))
                     Text(
                         eventDate.format(DateTimeFormatter.ofPattern("d MMM yyyy")),
-                        color = Color.Gray,
+                        color = metaColor,
                         fontSize = 15.sp
                     )
                 }
@@ -79,7 +81,7 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = if (isPassed) "Passed" else "Left",
-                        color = Color.Gray,
+                        color = metaColor,
                         fontSize = 13.sp
                     )
                     Text(
@@ -88,7 +90,7 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Medium
                     )
-                    Text(subText, color = Color.Gray, fontSize = 12.sp)
+                    Text(subText, color = metaColor, fontSize = 12.sp)
                 }
             }
         }

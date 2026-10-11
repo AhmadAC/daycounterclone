@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun HomeScreen(
     events: List<Event>,
+    isDarkTheme: Boolean = true,
     onAddClick: () -> Unit,
     onEventClick: (Event) -> Unit,
     onSettingsClick: () -> Unit,
@@ -48,14 +49,17 @@ fun HomeScreen(
     }
 
     val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("d MMM yyyy"))
+    val containerBg = if (isDarkTheme) Color(0xFF1A1A1A) else Color(0xFFF2F2F7)
+    val titleColor = if (isDarkTheme) Color.White else Color.Black
+    val iconColor = if (isDarkTheme) Color.LightGray else Color.DarkGray
 
     Scaffold(
-        containerColor = Color(0xFF1A1A1A),
+        containerColor = containerBg,
         snackbarHost = { 
             SnackbarHost(snackbarHostState) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFF333333),
+                    containerColor = if (isDarkTheme) Color(0xFF333333) else Color(0xFF222222),
                     contentColor = Color.White,
                     actionColor = Color(0xFFF16529)
                 )
@@ -70,13 +74,13 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Days Counter", fontSize = 22.sp, color = Color.White)
+                    Text("Days Counter", fontSize = 22.sp, color = titleColor)
                     Row {
                         IconButton(onClick = { showSortDialog = true }) {
-                            Icon(Icons.Default.FilterList, contentDescription = "Sort", tint = Color.LightGray)
+                            Icon(Icons.Default.FilterList, contentDescription = "Sort", tint = iconColor)
                         }
                         IconButton(onClick = onSettingsClick) {
-                            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.LightGray)
+                            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = iconColor)
                         }
                     }
                 }
@@ -128,10 +132,11 @@ fun HomeScreen(
                     }
                 )
 
+                // Swipe from left-to-right OR right-to-left to delete
                 SwipeToDismissBox(
                     state = dismissState,
                     backgroundContent = {
-                        val alignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterLeft else Alignment.CenterRight
+                        val alignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterStart else Alignment.CenterEnd
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -144,7 +149,7 @@ fun HomeScreen(
                         }
                     }
                 ) {
-                    EventCard(event = event, onClick = { onEventClick(event) })
+                    EventCard(event = event, isDarkTheme = isDarkTheme, onClick = { onEventClick(event) })
                 }
             }
         }
@@ -157,4 +162,41 @@ fun HomeScreen(
             onDismiss = { showSortDialog = false }
         )
     }
+}
+
+@Composable
+fun SortDialog(currentSort: SortOption, onSelect: (SortOption) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF2C2C2C),
+        title = { Text("Sort", color = Color.White, fontSize = 20.sp) },
+        text = {
+            Column {
+                val options = listOf(
+                    "By title (A-Z)" to SortOption.TITLE_AZ,
+                    "By title (Z-A)" to SortOption.TITLE_ZA,
+                    "Ascending date" to SortOption.DATE_ASC,
+                    "Descending date" to SortOption.DATE_DESC,
+                    "Ascending date added" to SortOption.ADDED_ASC,
+                    "Descending date added" to SortOption.ADDED_DESC
+                )
+                options.forEach { (label, option) ->
+                    Text(
+                        text = label,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(option) }
+                            .padding(vertical = 12.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("CANCEL", color = Color(0xFFF16529))
+            }
+        }
+    )
 }

@@ -5,18 +5,22 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import com.google.gson.Gson
+import com.google.gson.*
 import com.google.gson.reflect.TypeToken
 import java.io.File
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 object BackupHelper {
-    // 1. Local File Export
+    // 1. Local Export
     fun writeBackup(context: Context, uri: Uri, events: List<Event>): Boolean {
         return try {
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                val json = Gson().toJson(events)
-                outputStream.write(json.toByteArray())
+                val json = GsonBuilder().setPrettyPrinting().create().toJson(events)
+                outputStream.write(json.toByteArray(Charsets.UTF_8))
             }
             true
         } catch (e: Exception) {
@@ -25,30 +29,157 @@ object BackupHelper {
         }
     }
 
-    // 2. Local File Import
-    fun readBackup(context: Context, uri: Uri): List<Event>? {
+    // 2. Resilient Local Import (Strips WeChat BOM, accepts multiple date formats and JSON structures)
+    fun readBackup(context: Context, uri: Uri): Result<List<Event>> {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)
-            val json = inputStream?.bufferedReader().use { it?.readText() }
-            if (json != null) {
+                ?: return Result.failure(Exception("Cannot open file stream"))
+            val rawJson = inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            
+            // Remove UTF-8 Byte Order Mark (\uFEFF) injected by WeChat and file managers
+            val cleanJson = rawJson.trim().removePrefix("\uFEFF")
+            val gson = GsonBuilder().setLenient().create()
+
+            // Try standard list deserialization
+            try {
                 val listType = object : TypeToken<List<Event>>() {}.type
-                Gson().fromJson(json, listType)
+                val directList: List<Event>? = gson.fromJson(cleanJson, listType)
+                if (!directList.isNullOrEmpty() && directList.any { it.title.isNotBlank() }) {
+                    return Result.success(directList)
+                }
+            } catch (_: Exception) { }
+
+            // Dynamic JSON parsing fallback
+            val jsonElement = JsonParser.parseString(cleanJson)
+            val jsonArray = when {
+                jsonElement.isJsonArray -> jsonElement.asJsonArray
+                jsonElement.isJsonObject -> {
+                    val obj = jsonElement.asJsonObject
+                    when {
+                        obj.has("events") && obj.get("events").isJsonArray -> obj.getAsJsonArray("events")
+                        obj.has("data") && obj.get("data").isJsonArray -> obj.getAsJsonArray("data")
+                        obj.has("items") && obj.get("items").isJsonArray -> obj.getAsJsonArray("items")
+                        else -> JsonArray().apply { add(obj) }
+                    }
+                }
+                else -> return Result.failure(Exception("Unsupported JSON structure"))
+            }
+
+            val parsedEvents = mutableListOf<Event>()
+            val now = LocalDate.now()
+
+            for (element in jsonArray) {
+                if (!element.isJsonObject) continue
+                val obj = element.asJsonObject
+
+                val title = obj.getStr("title")
+                    ?: obj.getStr("name")
+                    ?: obj.getStr("eventTitle")
+                    ?: obj.getStr("text")
+                    ?: "Untitled"
+
+                val description = obj.getStr("description")
+                    ?: obj.getStr("desc")
+                    ?: obj.getStr("note")
+                    ?: ""
+
+                val epochDay = parseEpochDay(obj, now)
+                val colorHex = parseColor(obj)
+
+                val showYears = obj.getBool("showYears") ?: false
+                val showMonths = obj.getBool("showMonths") ?: false
+                val showWeeks = obj.getBool("showWeeks") ?: false
+                val showDays = obj.getBool("showDays") ?: true
+
+                parsedEvents.add(
+                    Event(
+                        id = 0,
+                        title = title,
+                        description = description,
+                        epochDay = epochDay,
+                        createdAt = obj.getLongOrNull("createdAt") ?: System.currentTimeMillis(),
+                        colorHex = colorHex,
+                        showYears = showYears,
+                        showMonths = showMonths,
+                        showWeeks = showWeeks,
+                        showDays = showDays
+                    )
+                )
+            }
+
+            if (parsedEvents.isEmpty()) {
+                Result.failure(Exception("No events found in file"))
             } else {
-                null
+                Result.success(parsedEvents)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            Result.failure(e)
         }
     }
 
-    // 3. WeChat Share
+    private fun JsonObject.getStr(key: String): String? =
+        if (has(key) && !get(key).isJsonNull) get(key).asString else null
+
+    private fun JsonObject.getLongOrNull(key: String): Long? =
+        if (has(key) && !get(key).isJsonNull) runCatching { get(key).asLong }.getOrNull() else null
+
+    private fun JsonObject.getBool(key: String): Boolean? =
+        if (has(key) && !get(key).isJsonNull) runCatching { get(key).asBoolean }.getOrNull() else null
+
+    private fun parseEpochDay(obj: JsonObject, defaultDate: LocalDate): Long {
+        obj.getLongOrNull("epochDay")?.let { return it }
+
+        val rawNum = obj.getLongOrNull("date")
+            ?: obj.getLongOrNull("targetDate")
+            ?: obj.getLongOrNull("timestamp")
+            ?: obj.getLongOrNull("time")
+        if (rawNum != null) {
+            return when {
+                rawNum > 100_000_000_000L ->
+                    Instant.ofEpochMilli(rawNum).atZone(ZoneId.systemDefault()).toLocalDate().toEpochDay()
+                rawNum > 1_000_000_000L ->
+                    Instant.ofEpochSecond(rawNum).atZone(ZoneId.systemDefault()).toLocalDate().toEpochDay()
+                else -> rawNum
+            }
+        }
+
+        val rawDateStr = obj.getStr("date") ?: obj.getStr("targetDate") ?: obj.getStr("eventDate")
+        if (!rawDateStr.isNullOrBlank()) {
+            val patterns = listOf(
+                "yyyy-MM-dd", "d MMM yyyy", "dd MMM yyyy", "d/M/yyyy", "dd/MM/yyyy", "MM/dd/yyyy", "yyyy/MM/dd"
+            )
+            for (pattern in patterns) {
+                try {
+                    val formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
+                    return LocalDate.parse(rawDateStr.trim(), formatter).toEpochDay()
+                } catch (_: Exception) { }
+            }
+        }
+
+        return defaultDate.toEpochDay()
+    }
+
+    private fun parseColor(obj: JsonObject): Long {
+        obj.getLongOrNull("colorHex")?.let { return it }
+        val rawColor = obj.get("color")
+        if (rawColor != null && !rawColor.isJsonNull) {
+            runCatching { return rawColor.asLong }
+            val str = rawColor.asString
+            if (str.startsWith("#")) {
+                runCatching { return android.graphics.Color.parseColor(str).toLong() and 0xFFFFFFFFL }
+            }
+        }
+        return 0xFFF16529
+    }
+
+    // 3. Send Backup to WeChat
     fun sendBackupToWeChat(context: Context, events: List<Event>) {
         try {
-            val json = Gson().toJson(events)
+            val json = GsonBuilder().setPrettyPrinting().create().toJson(events)
             val fileName = "days_counter_backup_${LocalDate.now()}.json"
             val backupFile = File(context.cacheDir, fileName)
-            backupFile.writeText(json)
+            backupFile.writeText(json, Charsets.UTF_8)
 
             val uri = FileProvider.getUriForFile(
                 context,
