@@ -1,7 +1,6 @@
 package com.example.dayscounter
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,21 +14,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     events: List<Event>,
     onAddClick: () -> Unit,
     onEventClick: (Event) -> Unit,
-    onBackupToWeChat: () -> Unit
+    onSettingsClick: () -> Unit,
+    onDeleteEvent: (Event) -> Unit,
+    onRestoreEvent: (Event) -> Unit
 ) {
     var showSortDialog by remember { mutableStateOf(false) }
     var currentSort by remember { mutableStateOf(SortOption.DATE_ASC) }
+    
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val sortedEvents = remember(events, currentSort) {
         when (currentSort) {
@@ -46,6 +51,16 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = Color(0xFF1A1A1A),
+        snackbarHost = { 
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFF333333),
+                    contentColor = Color.White,
+                    actionColor = Color(0xFFF16529)
+                )
+            }
+        },
         topBar = {
             Column {
                 Row(
@@ -60,8 +75,8 @@ fun HomeScreen(
                         IconButton(onClick = { showSortDialog = true }) {
                             Icon(Icons.Default.FilterList, contentDescription = "Sort", tint = Color.LightGray)
                         }
-                        IconButton(onClick = onBackupToWeChat) {
-                            Icon(Icons.Default.Share, contentDescription = "WeChat Backup", tint = Color.LightGray)
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.LightGray)
                         }
                     }
                 }
@@ -91,7 +106,46 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(sortedEvents, key = { it.id }) { event ->
-                EventCard(event = event, onClick = { onEventClick(event) })
+                val dismissState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = { dismissValue ->
+                        if (dismissValue == SwipeToDismissBoxValue.EndToStart || dismissValue == SwipeToDismissBoxValue.StartToEnd) {
+                            onDeleteEvent(event)
+                            scope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                                val result = snackbarHostState.showSnackbar(
+                                    message = "Event deleted",
+                                    actionLabel = "RESTORE",
+                                    duration = SnackbarDuration.Short
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    onRestoreEvent(event)
+                                }
+                            }
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                )
+
+                SwipeToDismissBox(
+                    state = dismissState,
+                    backgroundContent = {
+                        val alignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterLeft else Alignment.CenterRight
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFFE53935))
+                                .padding(horizontal = 20.dp),
+                            contentAlignment = alignment
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                        }
+                    }
+                ) {
+                    EventCard(event = event, onClick = { onEventClick(event) })
+                }
             }
         }
     }

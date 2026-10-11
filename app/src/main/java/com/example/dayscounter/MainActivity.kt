@@ -22,7 +22,7 @@ enum class SortOption {
 class MainActivity : ComponentActivity() {
     private val db by lazy {
         Room.databaseBuilder(applicationContext, AppDatabase::class.java, "days_counter.db")
-            .fallbackToDestructiveMigration() // Automatically updates DB structure
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -44,7 +44,13 @@ class MainActivity : ComponentActivity() {
                             selectedEvent = event
                             currentScreen = "VIEW"
                         },
-                        onBackupToWeChat = { WeChatBackupHelper.sendBackupToWeChat(this, events) }
+                        onSettingsClick = { currentScreen = "SETTINGS" },
+                        onDeleteEvent = { event ->
+                            scope.launch { db.eventDao().delete(event) }
+                        },
+                        onRestoreEvent = { event ->
+                            scope.launch { db.eventDao().insertOrUpdate(event) }
+                        }
                     )
                     "ADD" -> AddEventScreen(
                         onBack = { currentScreen = "HOME" },
@@ -67,6 +73,15 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+                    "SETTINGS" -> SettingsScreen(
+                        events = events,
+                        onBack = { currentScreen = "HOME" },
+                        onImportEvents = { importedEvents ->
+                            scope.launch {
+                                importedEvents.forEach { db.eventDao().insertOrUpdate(it.copy(id = 0)) }
+                            }
+                        }
+                    )
                 }
             }
         }
