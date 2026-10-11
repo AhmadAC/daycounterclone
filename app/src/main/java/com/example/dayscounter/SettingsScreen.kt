@@ -73,7 +73,6 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Backup & Restore Section
             SettingsCategory("Backup & Restore")
             SettingsItem(title = "Upload all events to a file", onClick = {
                 exportLauncher.launch("days_counter_backup_${LocalDate.now()}.json")
@@ -81,14 +80,12 @@ fun SettingsScreen(
             SettingsItem(title = "Download events from file", onClick = {
                 importLauncher.launch("*/*")
             })
-            // Added WeChat option back in
             SettingsItem(title = "Share backup to WeChat", onClick = {
                 BackupHelper.sendBackupToWeChat(context, events)
             })
 
-            Divider(color = Color(0xFF333333), thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFF333333), thickness = 1.dp)
 
-            // Interface Settings Section
             SettingsCategory("Interface settings")
             var useRoundButton by remember { mutableStateOf(true) }
             SettingsSwitchItem(title = "Use the primary round button", isChecked = useRoundButton) { useRoundButton = it }
@@ -100,9 +97,8 @@ fun SettingsScreen(
             var useSystemTheme by remember { mutableStateOf(true) }
             SettingsCheckboxItem(title = "Use system theme", isChecked = useSystemTheme) { useSystemTheme = it }
 
-            Divider(color = Color(0xFF333333), thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFF333333), thickness = 1.dp)
 
-            // Support Section
             SettingsCategory("Support")
             SettingsItem(title = "Rate app", onClick = { })
             SettingsItem(
@@ -112,9 +108,8 @@ fun SettingsScreen(
             )
             SettingsItem(title = "Share app", subtitle = "Tell your friends and friends about the app.", onClick = { })
 
-            Divider(color = Color(0xFF333333), thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFF333333), thickness = 1.dp)
 
-            // About Section
             SettingsCategory("About")
             SettingsItem(title = "Privacy policy", onClick = { })
             SettingsItem(title = "Contact with me", onClick = { })

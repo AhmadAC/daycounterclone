@@ -11,7 +11,7 @@ import java.io.File
 import java.time.LocalDate
 
 object BackupHelper {
-    // 1. Local Export
+    // 1. Local File Export
     fun writeBackup(context: Context, uri: Uri, events: List<Event>): Boolean {
         return try {
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
@@ -25,7 +25,7 @@ object BackupHelper {
         }
     }
 
-    // 2. Local Import
+    // 2. Local File Import
     fun readBackup(context: Context, uri: Uri): List<Event>? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)
@@ -60,13 +60,12 @@ object BackupHelper {
                 type = "application/json"
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                setPackage("com.tencent.mm") // Targets WeChat explicitly
+                setPackage("com.tencent.mm")
             }
 
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
-                // If WeChat is not installed, fallback to the standard share sheet
                 val chooser = Intent.createChooser(intent.apply { `package` = null }, "Share Backup via")
                 context.startActivity(chooser)
             }
