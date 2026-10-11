@@ -24,6 +24,7 @@ import java.time.LocalDate
 @Composable
 fun ViewEventScreen(
     event: Event,
+    isDarkTheme: Boolean = true,
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onUpdate: (Event) -> Unit
@@ -41,25 +42,30 @@ fun ViewEventScreen(
         )
     }
 
+    val bgColor = if (isDarkTheme) Color(0xFF1B1B1B) else Color(0xFFF2F2F7)
+    val cardColor = if (isDarkTheme) Color(0xFF333333) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color.Black
+
     Scaffold(
-        containerColor = Color(0xFF1B1B1B),
+        containerColor = bgColor,
+        modifier = Modifier.fillMaxSize().swipeToBack(onBack),
         topBar = {
             TopAppBar(
-                title = { Text("View event", color = Color.White) },
+                title = { Text("View event", color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = textColor)
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Edit Action */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
+                    IconButton(onClick = { }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = textColor)
                     }
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = textColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1B1B1B))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
             )
         }
     ) { padding ->
@@ -70,10 +76,10 @@ fun ViewEventScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            EventCard(event = event, onClick = {})
+            EventCard(event = event, isDarkTheme = isDarkTheme, onClick = {})
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF333333)),
+                colors = CardDefaults.cardColors(containerColor = cardColor),
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -91,7 +97,7 @@ fun ViewEventScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF333333)),
+                    colors = CardDefaults.cardColors(containerColor = cardColor),
                     shape = RoundedCornerShape(4.dp),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -118,7 +124,7 @@ fun ViewEventScreen(
                 }
 
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF333333)),
+                    colors = CardDefaults.cardColors(containerColor = cardColor),
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Row(
@@ -132,14 +138,14 @@ fun ViewEventScreen(
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(Color(event.colorHex))
                         )
-                        Icon(Icons.Default.Palette, contentDescription = "Custom Color", tint = Color.White)
+                        Icon(Icons.Default.Palette, contentDescription = "Custom Color", tint = textColor)
                     }
                 }
             }
 
             // CHECKBOXES BLOCK
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF333333)),
+                colors = CardDefaults.cardColors(containerColor = cardColor),
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -151,12 +157,12 @@ fun ViewEventScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(Modifier.fillMaxWidth()) {
                         Column(Modifier.weight(1f)) {
-                            TimeUnitCheckbox("Years", event.showYears, diff.years, event.colorHex) { onUpdate(event.copy(showYears = it)) }
-                            TimeUnitCheckbox("Months", event.showMonths, diff.months, event.colorHex) { onUpdate(event.copy(showMonths = it)) }
+                            TimeUnitCheckbox("Years", event.showYears, diff.years, event.colorHex, textColor) { onUpdate(event.copy(showYears = it)) }
+                            TimeUnitCheckbox("Months", event.showMonths, diff.months, event.colorHex, textColor) { onUpdate(event.copy(showMonths = it)) }
                         }
                         Column(Modifier.weight(1f)) {
-                            TimeUnitCheckbox("Weeks", event.showWeeks, diff.weeks, event.colorHex) { onUpdate(event.copy(showWeeks = it)) }
-                            TimeUnitCheckbox("Days", event.showDays, diff.days, event.colorHex) { onUpdate(event.copy(showDays = it)) }
+                            TimeUnitCheckbox("Weeks", event.showWeeks, diff.weeks, event.colorHex, textColor) { onUpdate(event.copy(showWeeks = it)) }
+                            TimeUnitCheckbox("Days", event.showDays, diff.days, event.colorHex, textColor) { onUpdate(event.copy(showDays = it)) }
                         }
                     }
                 }
@@ -171,6 +177,7 @@ fun TimeUnitCheckbox(
     isChecked: Boolean,
     value: Long,
     colorHex: Long,
+    textColor: Color,
     onCheckedChange: (Boolean) -> Unit
 ) {
     val color = Color(colorHex)
@@ -183,67 +190,15 @@ fun TimeUnitCheckbox(
             onCheckedChange = onCheckedChange,
             colors = CheckboxDefaults.colors(
                 checkedColor = color,
-                uncheckedColor = Color(0xFFF16529), // Outline color in original app
+                uncheckedColor = Color(0xFFF16529),
                 checkmarkColor = Color.White
             )
         )
-        Text(text = "$label: ", color = Color.White, fontSize = 16.sp)
+        Text(text = "$label: ", color = textColor, fontSize = 16.sp)
         Text(
             text = if (isChecked) value.toString() else "-",
             color = color,
             fontSize = 18.sp
         )
     }
-}
-
-@Composable
-fun ColorPickerDialog(
-    initialColor: Long,
-    onColorSelected: (Long) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var red by remember { mutableFloatStateOf(Color(initialColor).red) }
-    var green by remember { mutableFloatStateOf(Color(initialColor).green) }
-    var blue by remember { mutableFloatStateOf(Color(initialColor).blue) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF2C2C2C),
-        title = { Text("Select Custom Color", color = Color.White) },
-        text = {
-            Column {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color(red, green, blue))
-                )
-                Spacer(Modifier.height(16.dp))
-                
-                Text("Red", color = Color.White)
-                Slider(value = red, onValueChange = { red = it }, colors = SliderDefaults.colors(thumbColor = Color.Red, activeTrackColor = Color.Red))
-                
-                Text("Green", color = Color.White)
-                Slider(value = green, onValueChange = { green = it }, colors = SliderDefaults.colors(thumbColor = Color.Green, activeTrackColor = Color.Green))
-                
-                Text("Blue", color = Color.White)
-                Slider(value = blue, onValueChange = { blue = it }, colors = SliderDefaults.colors(thumbColor = Color.Blue, activeTrackColor = Color.Blue))
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val newColor = Color(red, green, blue)
-                // Convert Compose ARGB Color back to Long Hex value
-                val colorLong = (0xFFL shl 24) or
-                        ((newColor.red * 255).toLong() shl 16) or
-                        ((newColor.green * 255).toLong() shl 8) or
-                        ((newColor.blue * 255).toLong())
-                onColorSelected(colorLong)
-            }) { Text("SAVE", color = Color(0xFFF16529)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("CANCEL", color = Color.Gray) }
-        }
-    )
 }
