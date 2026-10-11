@@ -23,7 +23,6 @@ enum class SortOption {
     TITLE_AZ, TITLE_ZA, DATE_ASC, DATE_DESC, ADDED_ASC, ADDED_DESC
 }
 
-// Swipe left or right to go back to the previous screen
 fun Modifier.swipeToBack(onBack: () -> Unit): Modifier = this.pointerInput(Unit) {
     var totalDrag = 0f
     detectHorizontalDragGestures(
@@ -53,7 +52,6 @@ class MainActivity : ComponentActivity() {
             var currentScreen by remember { mutableStateOf("HOME") }
             var selectedEvent by remember { mutableStateOf<Event?>(null) }
 
-            // Theme Management: system theme toggle + dark mode toggle
             var useSystemTheme by remember { mutableStateOf(true) }
             var isDarkTheme by remember { mutableStateOf(true) }
             val systemDark = isSystemInDarkTheme()
