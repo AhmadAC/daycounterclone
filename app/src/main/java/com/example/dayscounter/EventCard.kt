@@ -8,25 +8,42 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
-import java.time.Period
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 @Composable
 fun EventCard(event: Event, onClick: () -> Unit) {
     val today = LocalDate.now()
     val eventDate = LocalDate.ofEpochDay(event.epochDay)
     val isPassed = !eventDate.isAfter(today)
-    val totalDays = ChronoUnit.DAYS.between(
-        if (isPassed) eventDate else today,
-        if (isPassed) today else eventDate
+
+    // Calculate time using the exact combination of checkboxes selected
+    val diff = calculateTimeDiff(
+        startDate = if (isPassed) eventDate else today,
+        endDate = if (isPassed) today else eventDate,
+        event = event
     )
+
+    // Build the dynamic string (e.g. "41" for Days, or "1/10" for Months/Days)
+    val values = mutableListOf<String>()
+    val labels = mutableListOf<String>()
+
+    if (event.showYears) { values.add(diff.years.toString()); labels.add("years") }
+    if (event.showMonths) { values.add(diff.months.toString()); labels.add("months") }
+    if (event.showWeeks) { values.add(diff.weeks.toString()); labels.add("weeks") }
+    if (event.showDays) { values.add(diff.days.toString()); labels.add("days") }
+
+    if (values.isEmpty()) {
+        values.add("0")
+        labels.add("days")
+    }
+
+    val mainText = values.joinToString("/")
+    val subText = labels.joinToString("/")
 
     Card(
         modifier = Modifier
@@ -36,7 +53,6 @@ fun EventCard(event: Event, onClick: () -> Unit) {
         shape = RoundedCornerShape(4.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            // Left color strip
             Box(
                 modifier = Modifier
                     .width(5.dp)
@@ -50,7 +66,6 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Left: Title & Date
                 Column(modifier = Modifier.weight(1f)) {
                     Text(event.title, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(14.dp))
@@ -61,70 +76,21 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     )
                 }
 
-                // Right: Passed/Left + Count
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = if (isPassed) "Passed" else "Left",
                         color = Color.Gray,
                         fontSize = 13.sp
                     )
-                    if (event.displayMode == "DAYS") {
-                        Text(
-                            text = totalDays.toString(),
-                            color = Color(event.colorHex),
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text("days", color = Color.Gray, fontSize = 12.sp)
-                    } else {
-                        val period = if (isPassed) Period.between(eventDate, today) else Period.between(today, eventDate)
-                        Text(
-                            text = "${period.years}/${period.months}/${period.days}",
-                            color = Color(event.colorHex),
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text("years/months/days", color = Color.Gray, fontSize = 11.sp)
-                    }
+                    Text(
+                        text = mainText,
+                        color = Color(event.colorHex),
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(subText, color = Color.Gray, fontSize = 12.sp)
                 }
             }
         }
     }
-}
-
-@Composable
-fun SortDialog(currentSort: SortOption, onSelect: (SortOption) -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF2C2C2C),
-        title = { Text("Sort", color = Color.White, fontSize = 20.sp) },
-        text = {
-            Column {
-                val options = listOf(
-                    "By title (A-Z)" to SortOption.TITLE_AZ,
-                    "By title (Z-A)" to SortOption.TITLE_ZA,
-                    "Ascending date" to SortOption.DATE_ASC,
-                    "Descending date" to SortOption.DATE_DESC,
-                    "Ascending date added" to SortOption.ADDED_ASC,
-                    "Descending date added" to SortOption.ADDED_DESC
-                )
-                options.forEach { (label, option) ->
-                    Text(
-                        text = label,
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(option) }
-                            .padding(vertical = 12.dp)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("CANCEL", color = Color(0xFFF16529))
-            }
-        }
-    )
 }
