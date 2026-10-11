@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.room.Room
 import kotlinx.coroutines.launch
 
-// Palette colors matching the screenshot
 val PaletteColors = listOf(
     0xFFF16529, 0xFFE53935, 0xFF8E24AA, 0xFF1E88E5, 0xFF43A047, 0xFFFDD835
 )
@@ -22,7 +21,9 @@ enum class SortOption {
 
 class MainActivity : ComponentActivity() {
     private val db by lazy {
-        Room.databaseBuilder(applicationContext, AppDatabase::class.java, "days_counter.db").build()
+        Room.databaseBuilder(applicationContext, AppDatabase::class.java, "days_counter.db")
+            .fallbackToDestructiveMigration() // Automatically updates DB structure
+            .build()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
