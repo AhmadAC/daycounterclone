@@ -2,6 +2,7 @@ package com.example.dayscounter
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -23,13 +24,17 @@ enum class SortOption {
     TITLE_AZ, TITLE_ZA, DATE_ASC, DATE_DESC, ADDED_ASC, ADDED_DESC
 }
 
+// On-screen horizontal drag gesture (swipe left-to-right or right-to-left to go back)
 fun Modifier.swipeToBack(onBack: () -> Unit): Modifier = this.pointerInput(Unit) {
     var totalDrag = 0f
     detectHorizontalDragGestures(
         onDragStart = { totalDrag = 0f },
-        onHorizontalDrag = { _, dragAmount -> totalDrag += dragAmount },
+        onHorizontalDrag = { change, dragAmount ->
+            change.consume()
+            totalDrag += dragAmount
+        },
         onDragEnd = {
-            if (abs(totalDrag) > 100f) {
+            if (abs(totalDrag) > 80f) {
                 onBack()
             }
         }
@@ -52,6 +57,13 @@ class MainActivity : ComponentActivity() {
             var currentScreen by remember { mutableStateOf("HOME") }
             var selectedEvent by remember { mutableStateOf<Event?>(null) }
 
+            // INTERCEPT SYSTEM BACK GESTURE (both left & right edge swipes)
+            // This prevents the system from minimizing the app to the home screen
+            BackHandler(enabled = currentScreen != "HOME") {
+                currentScreen = "HOME"
+            }
+
+            // Theme Management
             var useSystemTheme by remember { mutableStateOf(true) }
             var isDarkTheme by remember { mutableStateOf(true) }
             val systemDark = isSystemInDarkTheme()
