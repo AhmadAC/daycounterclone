@@ -131,7 +131,8 @@ fun HomeScreen(
                 SwipeToDismissBox(
                     state = dismissState,
                     backgroundContent = {
-                        val alignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterLeft else Alignment.CenterRight
+                        // FIX: Changed CenterLeft -> CenterStart, CenterRight -> CenterEnd
+                        val alignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterStart else Alignment.CenterEnd
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
