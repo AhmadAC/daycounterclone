@@ -28,12 +28,11 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          # Generate wrapper at root if missing
           if [ ! -f "./gradlew" ]; then
             gradle wrapper
           fi
           chmod +x ./gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug -Pandroid.useAndroidX=true --stacktrace
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
