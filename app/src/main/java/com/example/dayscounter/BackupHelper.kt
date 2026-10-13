@@ -6,7 +6,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.google.gson.*
-import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.time.Instant
 import java.time.LocalDate
@@ -38,18 +37,9 @@ object BackupHelper {
             
             // Remove UTF-8 Byte Order Mark (\uFEFF) injected by WeChat and file managers
             val cleanJson = rawJson.trim().removePrefix("\uFEFF")
-            val gson = GsonBuilder().setLenient().create()
-
-            // Try standard list deserialization
-            try {
-                val listType = object : TypeToken<List<Event>>() {}.type
-                val directList: List<Event>? = gson.fromJson(cleanJson, listType)
-                if (!directList.isNullOrEmpty() && directList.any { it.title.isNotBlank() }) {
-                    return Result.success(directList)
-                }
-            } catch (_: Exception) { }
-
-            // Dynamic JSON parsing fallback
+            
+            // Force Dynamic JSON parsing to ensure Kotlin default values are respected
+            // (Gson direct-cast bypasses Kotlin null-safety on missing fields)
             val jsonElement = JsonParser.parseString(cleanJson)
             val jsonArray = when {
                 jsonElement.isJsonArray -> jsonElement.asJsonArray
@@ -82,7 +72,8 @@ object BackupHelper {
                     ?: obj.getStr("desc")
                     ?: obj.getStr("note")
                     ?: ""
-                
+
+                // Default safely to "Normal" if the field is missing in older backups
                 val label = obj.getStr("label") ?: "Normal"
 
                 val epochDay = parseEpochDay(obj, now)
@@ -95,7 +86,7 @@ object BackupHelper {
 
                 parsedEvents.add(
                     Event(
-                        id = 0,
+                        id = 0, // Reset ID so Room inserts them as new distinct events
                         title = title,
                         description = description,
                         label = label,
