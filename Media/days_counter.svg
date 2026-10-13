@@ -1,0 +1,92 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Squircle Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#242426"/>
+      <stop offset="50%" stop-color="#18181a"/>
+      <stop offset="100%" stop-color="#0f0f11"/>
+    </linearGradient>
+
+    <!-- Calendar Top Header Accent -->
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff7a3d"/>
+      <stop offset="100%" stop-color="#f16529"/>
+    </linearGradient>
+
+    <!-- Calendar Page Paper Gradient -->
+    <linearGradient id="pageGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+
+    <!-- Binder Ring Metallic Gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="40%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+
+    <!-- Floating Badge Gradient -->
+    <linearGradient id="fabGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff8246"/>
+      <stop offset="100%" stop-color="#d8521a"/>
+    </linearGradient>
+
+    <!-- Soft Drop Shadows -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+
+    <filter id="calShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+
+    <filter id="fabShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Squircle Body -->
+  <g filter="url(#shadow)">
+    <rect x="18" y="18" width="220" height="220" rx="46" fill="url(#bgGrad)" stroke="#f16529" stroke-width="2.5"/>
+    <rect x="22" y="22" width="212" height="212" rx="42" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.1"/>
+  </g>
+
+  <!-- Calendar Container -->
+  <g filter="url(#calShadow)">
+    <!-- Calendar Sheet (Bottom Page) -->
+    <rect x="42" y="92" width="172" height="106" rx="12" fill="url(#pageGrad)"/>
+    
+    <!-- Subtle Middle Page Fold/Divider Line -->
+    <line x1="44" y1="145" x2="212" y2="145" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+    <!-- Calendar Header (Orange Accent Bar) -->
+    <path d="M 42 66 C 42 58, 48 52, 56 52 L 200 52 C 208 52, 214 58, 214 66 L 214 96 L 42 96 Z" fill="url(#headerGrad)"/>
+    
+    <!-- Month/Label in Calendar Header -->
+    <text x="128" y="78" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="800" letter-spacing="3" text-anchor="middle" fill="#ffffff">DAYS</text>
+
+    <!-- Main Bold Counter Digits -->
+    <text x="128" y="142" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="900" text-anchor="middle" fill="#18181b">24</text>
+    <text x="128" y="176" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1" text-anchor="middle" fill="#71717a">COUNTER</text>
+
+    <!-- Top Metallic Binder Rings -->
+    <!-- Left Ring Hole & Ring -->
+    <circle cx="74" cy="54" r="5" fill="#18181b"/>
+    <rect x="71" y="44" width="6" height="20" rx="3" fill="url(#ringGrad)" stroke="#475569" stroke-width="0.8"/>
+
+    <!-- Right Ring Hole & Ring -->
+    <circle cx="182" cy="54" r="5" fill="#18181b"/>
+    <rect x="179" y="44" width="6" height="20" rx="3" fill="url(#ringGrad)" stroke="#475569" stroke-width="0.8"/>
+  </g>
+
+  <!-- Signature Orange Floating Action Button Badge (Bottom Right) -->
+  <g filter="url(#fabShadow)">
+    <circle cx="196" cy="196" r="28" fill="url(#fabGrad)" stroke="#ffffff" stroke-width="2"/>
+    <!-- Centered Plus Sign Cross -->
+    <line x1="184" y1="196" x2="208" y2="196" stroke="#ffffff" stroke-width="4.2" stroke-linecap="square"/>
+    <line x1="196" y1="184" x2="196" y2="208" stroke="#ffffff" stroke-width="4.2" stroke-linecap="square"/>
+  </g>
+</svg>

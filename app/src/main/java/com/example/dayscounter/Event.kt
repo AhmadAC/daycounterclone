@@ -10,6 +10,7 @@ data class Event(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
     val description: String = "",
+    val label: String = "Normal",
     val epochDay: Long,
     val createdAt: Long = System.currentTimeMillis(),
     val colorHex: Long = 0xFFF16529,
@@ -31,7 +32,7 @@ interface EventDao {
     suspend fun delete(event: Event)
 }
 
-@Database(entities = [Event::class], version = 2, exportSchema = false)
+@Database(entities = [Event::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
 }

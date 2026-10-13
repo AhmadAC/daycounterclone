@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -41,9 +43,16 @@ fun Modifier.swipeToBack(onBack: () -> Unit): Modifier = this.pointerInput(Unit)
     )
 }
 
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE events ADD COLUMN label TEXT NOT NULL DEFAULT 'Normal'")
+    }
+}
+
 class MainActivity : ComponentActivity() {
     private val db by lazy {
         Room.databaseBuilder(applicationContext, AppDatabase::class.java, "days_counter.db")
+            .addMigrations(MIGRATION_2_3)
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -56,6 +65,12 @@ class MainActivity : ComponentActivity() {
             
             var currentScreen by remember { mutableStateOf("HOME") }
             var selectedEvent by remember { mutableStateOf<Event?>(null) }
+
+            val existingLabels = remember(events) {
+                val labels = events.map { it.label.ifBlank { "Normal" } }.toMutableSet()
+                labels.add("Normal")
+                labels.sorted()
+            }
 
             // INTERCEPT SYSTEM BACK GESTURE (both left & right edge swipes)
             // This prevents the system from minimizing the app to the home screen
@@ -94,6 +109,7 @@ class MainActivity : ComponentActivity() {
                         )
                         "ADD" -> AddEventScreen(
                             isDarkTheme = effectiveDark,
+                            existingLabels = existingLabels,
                             onBack = { currentScreen = "HOME" },
                             onSave = { newEvent ->
                                 scope.launch { db.eventDao().insertOrUpdate(newEvent) }
@@ -104,6 +120,7 @@ class MainActivity : ComponentActivity() {
                             ViewEventScreen(
                                 event = event,
                                 isDarkTheme = effectiveDark,
+                                existingLabels = existingLabels,
                                 onBack = { currentScreen = "HOME" },
                                 onDelete = {
                                     scope.launch { db.eventDao().delete(event) }

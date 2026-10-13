@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
@@ -25,11 +26,17 @@ import java.time.LocalDate
 fun ViewEventScreen(
     event: Event,
     isDarkTheme: Boolean = true,
+    existingLabels: List<String>,
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onUpdate: (Event) -> Unit
 ) {
     var showColorPicker by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    val bgColor = if (isDarkTheme) Color(0xFF1B1B1B) else Color(0xFFF2F2F7)
+    val cardColor = if (isDarkTheme) Color(0xFF333333) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color.Black
 
     if (showColorPicker) {
         ColorPickerDialog(
@@ -42,9 +49,71 @@ fun ViewEventScreen(
         )
     }
 
-    val bgColor = if (isDarkTheme) Color(0xFF1B1B1B) else Color(0xFFF2F2F7)
-    val cardColor = if (isDarkTheme) Color(0xFF333333) else Color.White
-    val textColor = if (isDarkTheme) Color.White else Color.Black
+    if (showEditDialog) {
+        var eTitle by remember { mutableStateOf(event.title) }
+        var eDesc by remember { mutableStateOf(event.description) }
+        var eLabel by remember { mutableStateOf(event.label) }
+        var expanded by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            containerColor = cardColor,
+            title = { Text("Edit Information", color = textColor) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = eTitle, onValueChange = { eTitle = it },
+                        label = { Text("Title", color = Color.Gray) },
+                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = textColor, unfocusedTextColor = textColor)
+                    )
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = eLabel,
+                            onValueChange = { eLabel = it },
+                            label = { Text("Label (e.g. Work, Personal)", color = Color.Gray) },
+                            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = textColor, unfocusedTextColor = textColor),
+                            modifier = Modifier.menuAnchor(),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            containerColor = cardColor
+                        ) {
+                            existingLabels.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption, color = textColor) },
+                                    onClick = {
+                                        eLabel = selectionOption
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = eDesc, onValueChange = { eDesc = it },
+                        label = { Text("Description", color = Color.Gray) },
+                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = textColor, unfocusedTextColor = textColor)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onUpdate(event.copy(title = eTitle, description = eDesc, label = eLabel.ifBlank { "Normal" }))
+                    showEditDialog = false
+                }) { Text("SAVE", color = Color(0xFFF16529)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) { Text("CANCEL", color = Color.Gray) }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = bgColor,
@@ -58,7 +127,7 @@ fun ViewEventScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { showEditDialog = true }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = textColor)
                     }
                     IconButton(onClick = onDelete) {
@@ -83,12 +152,20 @@ fun ViewEventScreen(
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = if (event.description.isBlank()) "No description" else event.description,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(16.dp),
-                    fontSize = 16.sp
-                )
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Label: ${event.label.ifBlank { "Normal" }}",
+                        color = Color(0xFFF16529),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (event.description.isBlank()) "No description" else event.description,
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
+                }
             }
 
             // COLOR PALETTE BLOCK

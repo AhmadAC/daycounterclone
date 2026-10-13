@@ -82,6 +82,8 @@ object BackupHelper {
                     ?: obj.getStr("desc")
                     ?: obj.getStr("note")
                     ?: ""
+                
+                val label = obj.getStr("label") ?: "Normal"
 
                 val epochDay = parseEpochDay(obj, now)
                 val colorHex = parseColor(obj)
@@ -96,6 +98,7 @@ object BackupHelper {
                         id = 0,
                         title = title,
                         description = description,
+                        label = label,
                         epochDay = epochDay,
                         createdAt = obj.getLongOrNull("createdAt") ?: System.currentTimeMillis(),
                         colorHex = colorHex,

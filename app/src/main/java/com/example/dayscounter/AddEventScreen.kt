@@ -23,11 +23,14 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddEventScreen(
     isDarkTheme: Boolean = true,
+    existingLabels: List<String>,
     onBack: () -> Unit,
     onSave: (Event) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var label by remember { mutableStateOf("Normal") }
+    var expanded by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     val context = LocalContext.current
 
@@ -61,7 +64,7 @@ fun AddEventScreen(
             FloatingActionButton(
                 onClick = {
                     if (title.isNotBlank()) {
-                        onSave(Event(title = title, description = description, epochDay = selectedDate.toEpochDay()))
+                        onSave(Event(title = title, description = description, label = label.ifBlank { "Normal" }, epochDay = selectedDate.toEpochDay()))
                     }
                 },
                 containerColor = Color(0xFFF16529),
@@ -96,6 +99,42 @@ fun AddEventScreen(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = it }
+                    ) {
+                        TextField(
+                            value = label,
+                            onValueChange = { label = it },
+                            placeholder = { Text("Label (e.g. Normal, Work)", color = Color.Gray) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedTextColor = textColor,
+                                unfocusedTextColor = textColor
+                            ),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            containerColor = cardColor
+                        ) {
+                            existingLabels.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption, color = textColor) },
+                                    onClick = {
+                                        label = selectionOption
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(12.dp))
                     Text("Date", color = Color.Gray, fontSize = 12.sp)
                     Row(

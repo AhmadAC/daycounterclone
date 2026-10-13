@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,14 +38,30 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val sortedEvents = remember(events, currentSort) {
+    var selectedLabel by remember { mutableStateOf("Normal") }
+
+    val allLabels = remember(events) {
+        val labels = events.map { it.label.ifBlank { "Normal" } }.toMutableSet()
+        labels.add("Normal")
+        labels.sorted()
+    }
+
+    if (selectedLabel !in allLabels) {
+        selectedLabel = "Normal"
+    }
+
+    val filteredEvents = remember(events, selectedLabel) {
+        events.filter { (it.label.ifBlank { "Normal" }) == selectedLabel }
+    }
+
+    val sortedEvents = remember(filteredEvents, currentSort) {
         when (currentSort) {
-            SortOption.TITLE_AZ -> events.sortedBy { it.title.lowercase() }
-            SortOption.TITLE_ZA -> events.sortedByDescending { it.title.lowercase() }
-            SortOption.DATE_ASC -> events.sortedBy { it.epochDay }
-            SortOption.DATE_DESC -> events.sortedByDescending { it.epochDay }
-            SortOption.ADDED_ASC -> events.sortedBy { it.createdAt }
-            SortOption.ADDED_DESC -> events.sortedByDescending { it.createdAt }
+            SortOption.TITLE_AZ -> filteredEvents.sortedBy { it.title.lowercase() }
+            SortOption.TITLE_ZA -> filteredEvents.sortedByDescending { it.title.lowercase() }
+            SortOption.DATE_ASC -> filteredEvents.sortedBy { it.epochDay }
+            SortOption.DATE_DESC -> filteredEvents.sortedByDescending { it.epochDay }
+            SortOption.ADDED_ASC -> filteredEvents.sortedBy { it.createdAt }
+            SortOption.ADDED_DESC -> filteredEvents.sortedByDescending { it.createdAt }
         }
     }
 
@@ -66,7 +83,7 @@ fun HomeScreen(
             }
         },
         topBar = {
-            Column {
+            Column(modifier = Modifier.background(containerBg)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -90,6 +107,33 @@ fun HomeScreen(
                     fontSize = 14.sp,
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp)
                 )
+                ScrollableTabRow(
+                    selectedTabIndex = allLabels.indexOf(selectedLabel).coerceAtLeast(0),
+                    containerColor = Color.Transparent,
+                    contentColor = Color(0xFFF16529),
+                    edgePadding = 16.dp,
+                    divider = { HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f)) },
+                    indicator = { tabPositions ->
+                        val safeIndex = allLabels.indexOf(selectedLabel).coerceIn(0, tabPositions.size - 1)
+                        TabRowDefaults.Indicator(
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[safeIndex]),
+                            color = Color(0xFFF16529)
+                        )
+                    }
+                ) {
+                    allLabels.forEach { label ->
+                        Tab(
+                            selected = selectedLabel == label,
+                            onClick = { selectedLabel = label },
+                            text = {
+                                Text(
+                                    text = label,
+                                    color = if (selectedLabel == label) Color(0xFFF16529) else Color.Gray
+                                )
+                            }
+                        )
+                    }
+                }
             }
         },
         floatingActionButton = {
@@ -109,6 +153,7 @@ fun HomeScreen(
                 .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            item { Spacer(modifier = Modifier.height(4.dp)) }
             items(sortedEvents, key = { it.id }) { event ->
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { dismissValue ->
@@ -151,6 +196,7 @@ fun HomeScreen(
                     EventCard(event = event, isDarkTheme = isDarkTheme, onClick = { onEventClick(event) })
                 }
             }
+            item { Spacer(modifier = Modifier.height(60.dp)) }
         }
     }
 
