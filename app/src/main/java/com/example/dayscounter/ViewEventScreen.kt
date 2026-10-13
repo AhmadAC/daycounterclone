@@ -82,7 +82,7 @@ fun ViewEventScreen(
                         ExposedDropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
-                            containerColor = cardColor
+                            modifier = Modifier.background(cardColor)
                         ) {
                             existingLabels.forEach { selectionOption ->
                                 DropdownMenuItem(
