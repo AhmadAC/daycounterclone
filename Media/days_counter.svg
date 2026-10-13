@@ -48,45 +48,44 @@
     </filter>
   </defs>
 
-  <!-- Outer Squircle Body -->
-  <g filter="url(#shadow)">
-    <rect x="18" y="18" width="220" height="220" rx="46" fill="url(#bgGrad)" stroke="#f16529" stroke-width="2.5"/>
-    <rect x="22" y="22" width="212" height="212" rx="42" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.1"/>
-  </g>
+  <g transform="translate(128, 128) scale(0.88) translate(-128, -128)">
+    <!-- Outer Squircle Body -->
+    <g filter="url(#shadow)">
+      <rect x="18" y="18" width="220" height="220" rx="46" fill="url(#bgGrad)" stroke="#f16529" stroke-width="2.5"/>
+      <rect x="22" y="22" width="212" height="212" rx="42" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.1"/>
+    </g>
 
-  <!-- Calendar Container -->
-  <g filter="url(#calShadow)">
-    <!-- Calendar Sheet (Bottom Page) -->
-    <rect x="42" y="92" width="172" height="106" rx="12" fill="url(#pageGrad)"/>
-    
-    <!-- Subtle Middle Page Fold/Divider Line -->
-    <line x1="44" y1="145" x2="212" y2="145" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <!-- Calendar Container -->
+    <g filter="url(#calShadow)">
+      <!-- Calendar Sheet (Bottom Page) -->
+      <rect x="42" y="92" width="172" height="106" rx="12" fill="url(#pageGrad)"/>
+      
+      <!-- Subtle Middle Page Fold/Divider Line -->
+      <line x1="44" y1="145" x2="212" y2="145" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 3"/>
 
-    <!-- Calendar Header (Orange Accent Bar) -->
-    <path d="M 42 66 C 42 58, 48 52, 56 52 L 200 52 C 208 52, 214 58, 214 66 L 214 96 L 42 96 Z" fill="url(#headerGrad)"/>
-    
-    <!-- Month/Label in Calendar Header -->
-    <text x="128" y="78" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="800" letter-spacing="3" text-anchor="middle" fill="#ffffff">DAYS</text>
+      <!-- Calendar Header (Orange Accent Bar) -->
+      <path d="M 42 66 C 42 58, 48 52, 56 52 L 200 52 C 208 52, 214 58, 214 66 L 214 96 L 42 96 Z" fill="url(#headerGrad)"/>
+      
+      <!-- Month/Label in Calendar Header -->
+      <text x="128" y="78" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="800" letter-spacing="3" text-anchor="middle" fill="#ffffff">DAYS</text>
 
-    <!-- Main Bold Counter Digits -->
-    <text x="128" y="142" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="900" text-anchor="middle" fill="#18181b">24</text>
-    <text x="128" y="176" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1" text-anchor="middle" fill="#71717a">COUNTER</text>
+      <!-- Main Bold Counter Digits -->
+      <text x="128" y="142" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="900" text-anchor="middle" fill="#18181b">24</text>
+      <text x="128" y="176" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1" text-anchor="middle" fill="#71717a">COUNTER</text>
 
-    <!-- Top Metallic Binder Rings -->
-    <!-- Left Ring Hole & Ring -->
-    <circle cx="74" cy="54" r="5" fill="#18181b"/>
-    <rect x="71" y="44" width="6" height="20" rx="3" fill="url(#ringGrad)" stroke="#475569" stroke-width="0.8"/>
+      <!-- Top Metallic Binder Rings -->
+      <circle cx="74" cy="54" r="5" fill="#18181b"/>
+      <rect x="71" y="44" width="6" height="20" rx="3" fill="url(#ringGrad)" stroke="#475569" stroke-width="0.8"/>
 
-    <!-- Right Ring Hole & Ring -->
-    <circle cx="182" cy="54" r="5" fill="#18181b"/>
-    <rect x="179" y="44" width="6" height="20" rx="3" fill="url(#ringGrad)" stroke="#475569" stroke-width="0.8"/>
-  </g>
+      <circle cx="182" cy="54" r="5" fill="#18181b"/>
+      <rect x="179" y="44" width="6" height="20" rx="3" fill="url(#ringGrad)" stroke="#475569" stroke-width="0.8"/>
+    </g>
 
-  <!-- Signature Orange Floating Action Button Badge (Bottom Right) -->
-  <g filter="url(#fabShadow)">
-    <circle cx="196" cy="196" r="28" fill="url(#fabGrad)" stroke="#ffffff" stroke-width="2"/>
-    <!-- Centered Plus Sign Cross -->
-    <line x1="184" y1="196" x2="208" y2="196" stroke="#ffffff" stroke-width="4.2" stroke-linecap="square"/>
-    <line x1="196" y1="184" x2="196" y2="208" stroke="#ffffff" stroke-width="4.2" stroke-linecap="square"/>
+    <!-- Signature Orange Floating Action Button Badge (Bottom Right) -->
+    <g filter="url(#fabShadow)">
+      <circle cx="196" cy="196" r="28" fill="url(#fabGrad)" stroke="#ffffff" stroke-width="2"/>
+      <line x1="184" y1="196" x2="208" y2="196" stroke="#ffffff" stroke-width="4.2" stroke-linecap="square"/>
+      <line x1="196" y1="184" x2="196" y2="208" stroke="#ffffff" stroke-width="4.2" stroke-linecap="square"/>
+    </g>
   </g>
 </svg>

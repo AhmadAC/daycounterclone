@@ -5,55 +5,63 @@
     android:height="108dp"
     android:viewportWidth="256"
     android:viewportHeight="256">
-    
-    <!-- Calendar Bottom Page -->
-    <path
-        android:pathData="M42,92 h172 v106 a12,12 0 0 1 -12,12 h-148 a12,12 0 0 1 -12,-12 z">
-        <aapt:attr name="android:fillColor">
-            <gradient android:startX="128" android:startY="92" android:endX="128" android:endY="210" android:type="linear">
-                <item android:offset="0.0" android:color="#ffffff"/>
-                <item android:offset="0.7" android:color="#f8fafc"/>
-                <item android:offset="1.0" android:color="#e2e8f0"/>
-            </gradient>
-        </aapt:attr>
-    </path>
 
-    <!-- Divider Line -->
-    <path
-        android:pathData="M44,145 h168"
-        android:strokeColor="#cbd5e1"
-        android:strokeWidth="2"/>
+    <group
+        android:pivotX="128"
+        android:pivotY="128"
+        android:scaleX="0.68"
+        android:scaleY="0.68">
 
-    <!-- Calendar Header Accent Bar -->
-    <path
-        android:pathData="M42,66 c0,-8 6,-14 14,-14 h144 c8,0 14,6 14,14 v30 h-172 z">
-        <aapt:attr name="android:fillColor">
-            <gradient android:startX="128" android:startY="52" android:endX="128" android:endY="96" android:type="linear">
-                <item android:offset="0.0" android:color="#ff7a3d"/>
-                <item android:offset="1.0" android:color="#f16529"/>
-            </gradient>
-        </aapt:attr>
-    </path>
+        <!-- Calendar Bottom Page -->
+        <path
+            android:pathData="M42,92 h172 v106 a12,12 0 0 1 -12,12 h-148 a12,12 0 0 1 -12,-12 z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:startX="128" android:startY="92" android:endX="128" android:endY="210" android:type="linear">
+                    <item android:offset="0.0" android:color="#ffffff"/>
+                    <item android:offset="0.7" android:color="#f8fafc"/>
+                    <item android:offset="1.0" android:color="#e2e8f0"/>
+                </gradient>
+            </aapt:attr>
+        </path>
 
-    <!-- Rings -->
-    <path android:pathData="M69,54 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0 z M177,54 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0 z" android:fillColor="#18181b"/>
-    <path android:pathData="M71,44 h6 a3,3 0 0 1 3,3 v14 a3,3 0 0 1 -3,3 h-6 a3,3 0 0 1 -3,-3 v-14 a3,3 0 0 1 3,-3 z M179,44 h6 a3,3 0 0 1 3,3 v14 a3,3 0 0 1 -3,3 h-6 a3,3 0 0 1 -3,-3 v-14 a3,3 0 0 1 3,-3 z" android:fillColor="#cbd5e1" android:strokeColor="#475569" android:strokeWidth="1"/>
+        <!-- Divider Line -->
+        <path
+            android:pathData="M44,145 h168"
+            android:strokeColor="#cbd5e1"
+            android:strokeWidth="2"/>
 
-    <!-- Floating Badge -->
-    <path
-        android:pathData="M168,196 a28,28 0 1 0 56,0 a28,28 0 1 0 -56,0 z"
-        android:strokeColor="#ffffff" android:strokeWidth="2">
-        <aapt:attr name="android:fillColor">
-            <gradient android:startX="168" android:startY="168" android:endX="224" android:endY="224" android:type="linear">
-                <item android:offset="0.0" android:color="#ff8246"/>
-                <item android:offset="1.0" android:color="#d8521a"/>
-            </gradient>
-        </aapt:attr>
-    </path>
+        <!-- Calendar Header Accent Bar -->
+        <path
+            android:pathData="M42,66 c0,-8 6,-14 14,-14 h144 c8,0 14,6 14,14 v30 h-172 z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:startX="128" android:startY="52" android:endX="128" android:endY="96" android:type="linear">
+                    <item android:offset="0.0" android:color="#ff7a3d"/>
+                    <item android:offset="1.0" android:color="#f16529"/>
+                </gradient>
+            </aapt:attr>
+        </path>
 
-    <!-- Plus Cross -->
-    <path
-        android:pathData="M184,196 h24 M196,184 v24"
-        android:strokeColor="#ffffff"
-        android:strokeWidth="4.2" />
+        <!-- Rings -->
+        <path android:pathData="M69,54 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0 z M177,54 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0 z" android:fillColor="#18181b"/>
+        <path android:pathData="M71,44 h6 a3,3 0 0 1 3,3 v14 a3,3 0 0 1 -3,3 h-6 a3,3 0 0 1 -3,-3 v-14 a3,3 0 0 1 3,-3 z M179,44 h6 a3,3 0 0 1 3,3 v14 a3,3 0 0 1 -3,3 h-6 a3,3 0 0 1 -3,-3 v-14 a3,3 0 0 1 3,-3 z" android:fillColor="#cbd5e1" android:strokeColor="#475569" android:strokeWidth="1"/>
+
+        <!-- Floating Badge -->
+        <path
+            android:pathData="M168,196 a28,28 0 1 0 56,0 a28,28 0 1 0 -56,0 z"
+            android:strokeColor="#ffffff" android:strokeWidth="2">
+            <aapt:attr name="android:fillColor">
+                <gradient android:startX="168" android:startY="168" android:endX="224" android:endY="224" android:type="linear">
+                    <item android:offset="0.0" android:color="#ff8246"/>
+                    <item android:offset="1.0" android:color="#d8521a"/>
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Plus Cross -->
+        <path
+            android:pathData="M184,196 h24 M196,184 v24"
+            android:strokeColor="#ffffff"
+            android:strokeWidth="4.2" />
+
+    </group>
 </vector>

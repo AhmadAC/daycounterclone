@@ -1,11 +1,13 @@
 package com.example.dayscounter
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -16,10 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,10 +54,20 @@ fun ViewEventScreen(
     }
 
     if (showEditDialog) {
-        var eTitle by remember { mutableStateOf(event.title) }
-        var eDesc by remember { mutableStateOf(event.description) }
-        var eLabel by remember { mutableStateOf(event.label) }
+        var eTitle by remember(showEditDialog) { mutableStateOf(event.title) }
+        var eDesc by remember(showEditDialog) { mutableStateOf(event.description) }
+        var eLabel by remember(showEditDialog) { mutableStateOf(event.label) }
+        var eDate by remember(showEditDialog) { mutableStateOf(LocalDate.ofEpochDay(event.epochDay)) }
         var expanded by remember { mutableStateOf(false) }
+
+        val context = LocalContext.current
+        val datePicker = DatePickerDialog(
+            context,
+            { _, year, month, day -> eDate = LocalDate.of(year, month + 1, day) },
+            eDate.year,
+            eDate.monthValue - 1,
+            eDate.dayOfMonth
+        )
 
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
@@ -62,11 +76,16 @@ fun ViewEventScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        value = eTitle, onValueChange = { eTitle = it },
+                        value = eTitle,
+                        onValueChange = { eTitle = it },
                         label = { Text("Title", color = Color.Gray) },
-                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = textColor, unfocusedTextColor = textColor)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = textColor,
+                            unfocusedTextColor = textColor
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    
+
                     ExposedDropdownMenuBox(
                         expanded = expanded,
                         onExpandedChange = { expanded = it }
@@ -75,8 +94,11 @@ fun ViewEventScreen(
                             value = eLabel,
                             onValueChange = { eLabel = it },
                             label = { Text("Label (e.g. Work, Personal)", color = Color.Gray) },
-                            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = textColor, unfocusedTextColor = textColor),
-                            modifier = Modifier.menuAnchor(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = textColor,
+                                unfocusedTextColor = textColor
+                            ),
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
                         )
                         ExposedDropdownMenu(
@@ -96,16 +118,60 @@ fun ViewEventScreen(
                         }
                     }
 
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { datePicker.show() }
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("Date", color = Color.Gray, fontSize = 12.sp)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = eDate.format(DateTimeFormatter.ofPattern("d MMM yyyy")),
+                                    color = textColor,
+                                    fontSize = 16.sp
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.CalendarMonth,
+                                contentDescription = "Change Date",
+                                tint = Color(0xFFF16529)
+                            )
+                        }
+                    }
+
                     OutlinedTextField(
-                        value = eDesc, onValueChange = { eDesc = it },
+                        value = eDesc,
+                        onValueChange = { eDesc = it },
                         label = { Text("Description", color = Color.Gray) },
-                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = textColor, unfocusedTextColor = textColor)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = textColor,
+                            unfocusedTextColor = textColor
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    onUpdate(event.copy(title = eTitle, description = eDesc, label = eLabel.ifBlank { "Normal" }))
+                    onUpdate(
+                        event.copy(
+                            title = eTitle,
+                            description = eDesc,
+                            label = eLabel.ifBlank { "Normal" },
+                            epochDay = eDate.toEpochDay()
+                        )
+                    )
                     showEditDialog = false
                 }) { Text("SAVE", color = Color(0xFFF16529)) }
             },
@@ -229,7 +295,7 @@ fun ViewEventScreen(
                 val today = LocalDate.now()
                 val eventDate = LocalDate.ofEpochDay(event.epochDay)
                 val isPassed = !eventDate.isAfter(today)
-                val diff = calculateTimeDiff(if(isPassed) eventDate else today, if(isPassed) today else eventDate, event)
+                val diff = calculateTimeDiff(if (isPassed) eventDate else today, if (isPassed) today else eventDate, event)
 
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(Modifier.fillMaxWidth()) {

@@ -1,6 +1,15 @@
 package com.example.dayscounter
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,11 +24,151 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.abs
+import kotlin.math.roundToInt
+
+@Composable
+fun SwipeToDeleteEventItem(
+    event: Event,
+    isDarkTheme: Boolean,
+    onEventClick: (Event) -> Unit,
+    onDeleteEvent: (Event) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val revealWidthPx = with(density) { 88.dp.toPx() }
+    val thresholdPx = with(density) { 50.dp.toPx() }
+
+    val offsetX = remember { Animatable(0f) }
+    var isRevealed by remember { mutableStateOf(false) }
+    var timerJob by remember { mutableStateOf<Job?>(null) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+    ) {
+        val isSwipedRight = offsetX.value > 0
+        val align = if (isSwipedRight) Alignment.CenterStart else Alignment.CenterEnd
+        val paddingMod = if (isSwipedRight) Modifier.padding(start = 20.dp) else Modifier.padding(end = 20.dp)
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFFE53935)),
+            contentAlignment = align
+        ) {
+            AnimatedVisibility(
+                visible = isRevealed,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut(),
+                modifier = paddingMod
+            ) {
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            offsetX.snapTo(0f)
+                            isRevealed = false
+                        }
+                        onDeleteEvent(event)
+                    },
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.25f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Delete",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                .pointerInput(event.id) {
+                    detectHorizontalDragGestures(
+                        onDragStart = {
+                            timerJob?.cancel()
+                            timerJob = null
+                        },
+                        onDragEnd = {
+                            timerJob?.cancel()
+                            timerJob = null
+                            coroutineScope.launch {
+                                if (isRevealed) {
+                                    val target = if (offsetX.value > 0) revealWidthPx else -revealWidthPx
+                                    offsetX.animateTo(target, spring(stiffness = Spring.StiffnessMediumLow))
+                                } else {
+                                    offsetX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                                }
+                            }
+                        },
+                        onDragCancel = {
+                            timerJob?.cancel()
+                            timerJob = null
+                            coroutineScope.launch {
+                                if (!isRevealed) {
+                                    offsetX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                                }
+                            }
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
+                            val newOffset = (offsetX.value + dragAmount).coerceIn(-revealWidthPx * 1.3f, revealWidthPx * 1.3f)
+                            coroutineScope.launch { offsetX.snapTo(newOffset) }
+
+                            if (abs(newOffset) >= thresholdPx) {
+                                if (!isRevealed && timerJob == null) {
+                                    timerJob = coroutineScope.launch {
+                                        delay(1000)
+                                        isRevealed = true
+                                    }
+                                }
+                            } else {
+                                timerJob?.cancel()
+                                timerJob = null
+                                if (abs(newOffset) < 10f) {
+                                    isRevealed = false
+                                }
+                            }
+                        }
+                    )
+                }
+        ) {
+            EventCard(
+                event = event,
+                isDarkTheme = isDarkTheme,
+                onClick = {
+                    if (isRevealed || abs(offsetX.value) > 5f) {
+                        coroutineScope.launch {
+                            offsetX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                            isRevealed = false
+                        }
+                    } else {
+                        onEventClick(event)
+                    }
+                }
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,46 +304,25 @@ fun HomeScreen(
         ) {
             item { Spacer(modifier = Modifier.height(4.dp)) }
             items(sortedEvents, key = { it.id }) { event ->
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { dismissValue ->
-                        if (dismissValue == SwipeToDismissBoxValue.EndToStart || dismissValue == SwipeToDismissBoxValue.StartToEnd) {
-                            onDeleteEvent(event)
-                            scope.launch {
-                                snackbarHostState.currentSnackbarData?.dismiss()
-                                val result = snackbarHostState.showSnackbar(
-                                    message = "Event deleted",
-                                    actionLabel = "RESTORE",
-                                    duration = SnackbarDuration.Short
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    onRestoreEvent(event)
-                                }
+                SwipeToDeleteEventItem(
+                    event = event,
+                    isDarkTheme = isDarkTheme,
+                    onEventClick = onEventClick,
+                    onDeleteEvent = { targetEvent ->
+                        onDeleteEvent(targetEvent)
+                        scope.launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Event deleted",
+                                actionLabel = "RESTORE",
+                                duration = SnackbarDuration.Short
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                onRestoreEvent(targetEvent)
                             }
-                            true
-                        } else {
-                            false
                         }
                     }
                 )
-
-                SwipeToDismissBox(
-                    state = dismissState,
-                    backgroundContent = {
-                        val alignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterStart else Alignment.CenterEnd
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xFFE53935))
-                                .padding(horizontal = 20.dp),
-                            contentAlignment = alignment
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
-                        }
-                    }
-                ) {
-                    EventCard(event = event, isDarkTheme = isDarkTheme, onClick = { onEventClick(event) })
-                }
             }
             item { Spacer(modifier = Modifier.height(60.dp)) }
         }
