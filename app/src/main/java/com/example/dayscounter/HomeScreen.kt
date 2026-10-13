@@ -137,7 +137,7 @@ fun SwipeToDeleteEventItem(
                             if (abs(newOffset) >= thresholdPx) {
                                 if (!isRevealed && timerJob == null) {
                                     timerJob = coroutineScope.launch {
-                                        delay(1000)
+                                        delay(400)
                                         isRevealed = true
                                     }
                                 }
