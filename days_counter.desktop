@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Days Counter
+Comment=Days Counter & Countdown Tracker
+Exec="/usr/bin/python" "/var/mnt/shared-drive/2027/MrCooperSuite/daycounterclone/daycounterpc.py"
+Path=/var/mnt/shared-drive/2027/MrCooperSuite/daycounterclone
+Icon=/var/mnt/shared-drive/2027/MrCooperSuite/daycounterclone/Media/days_counter.png
+Terminal=false
+StartupNotify=true
+Categories=Utility;Office;ProjectManagement;
