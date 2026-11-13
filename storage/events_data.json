@@ -143,16 +143,16 @@
     "showDays": true
   },
   {
-    "id": 85830,
-    "title": "Patrick 408 p1 tuesday 8:30",
+    "id": 50321,
+    "title": "CISA STEAM",
     "description": "",
-    "label": "Feedback",
-    "epochDay": 20746,
-    "createdAt": 1792386185830,
-    "colorHex": 4280207589,
+    "label": "School",
+    "epochDay": 20790,
+    "createdAt": 1793146650321,
+    "colorHex": 4282622023,
     "showYears": false,
-    "showMonths": false,
-    "showWeeks": false,
+    "showMonths": true,
+    "showWeeks": true,
     "showDays": true
   }
 ]
