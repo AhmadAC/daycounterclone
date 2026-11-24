@@ -65,32 +65,6 @@
     "showDays": true
   },
   {
-    "id": 9,
-    "title": "sherry Thursday P1 12th of Nov formal Obs",
-    "description": "",
-    "label": "Obs",
-    "epochDay": 20769,
-    "createdAt": 1791760122300,
-    "colorHex": 4294826037,
-    "showYears": false,
-    "showMonths": false,
-    "showWeeks": false,
-    "showDays": true
-  },
-  {
-    "id": 11,
-    "title": "Bibs morning 9-12",
-    "description": "cisa ",
-    "label": "Normal",
-    "epochDay": 20771,
-    "createdAt": 1791883981025,
-    "colorHex": 4294010153,
-    "showYears": false,
-    "showMonths": false,
-    "showWeeks": false,
-    "showDays": true
-  },
-  {
     "id": 12,
     "title": "Dad",
     "description": "",
